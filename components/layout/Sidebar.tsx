@@ -16,7 +16,7 @@ import {
     X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 
 const navigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -87,6 +87,7 @@ export function Sidebar() {
                         </Button>
                     </SheetTrigger>
                     <SheetContent side="left" className="p-0 w-64">
+                        <SheetTitle className="sr-only">Menu Navigasi</SheetTitle>
                         <SidebarContent onLinkClick={() => setOpen(false)} />
                     </SheetContent>
                 </Sheet>
