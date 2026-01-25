@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { formatDate } from '@/lib/format';
 
 interface RiwayatClientProps {
     initialTransactions: Transaction[];
@@ -54,7 +55,7 @@ export function RiwayatClient({ initialTransactions }: RiwayatClientProps) {
                         data.map((trans) => (
                             <TableRow key={trans.id}>
                                 <TableCell>
-                                    {new Date(trans.date).toLocaleDateString('id-ID')}
+                                    {formatDate(trans.date)}
                                 </TableCell>
                                 <TableCell className="font-medium">
                                     {(trans.item as any)?.item_name || 'N/A'}

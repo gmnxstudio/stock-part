@@ -9,14 +9,7 @@ import {
   DollarSign,
   AlertCircle,
 } from 'lucide-react';
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-  }).format(value);
-}
+import { formatCurrency, formatDate } from '@/lib/format';
 
 export default async function Dashboard() {
   const stats = await getDashboardStats();
@@ -190,7 +183,7 @@ export default async function Dashboard() {
                       </p>
                       <p className="text-xs text-gray-500">
                         {trans.pic?.name || 'N/A'} •{' '}
-                        {new Date(trans.date).toLocaleDateString('id-ID')}
+                        {formatDate(trans.date)}
                       </p>
                     </div>
                     <Badge

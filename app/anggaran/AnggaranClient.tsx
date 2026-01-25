@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
+import { formatCurrency } from '@/lib/format';
 
 interface AnggaranClientProps {
     stockInfo: StockInfo[];
@@ -34,14 +35,6 @@ export function AnggaranClient({ stockInfo }: AnggaranClientProps) {
         const qtyNeeded = Math.max(item.min_stock * 1.5 - item.current_stock, 0);
         return sum + qtyNeeded * item.buying_price;
     }, 0);
-
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0,
-        }).format(value);
-    };
 
     return (
         <>

@@ -5,6 +5,7 @@ import { StockInfo } from '@/types/database';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { formatCurrency } from '@/lib/format';
 import { Search } from 'lucide-react';
 
 interface CariPartClientProps {
@@ -30,14 +31,6 @@ export function CariPartClient({ stockInfo }: CariPartClientProps) {
             default:
                 return 'bg-[#7eb93e]';
         }
-    };
-
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0,
-        }).format(value);
     };
 
     return (

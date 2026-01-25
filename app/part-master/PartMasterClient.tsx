@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Item, Category } from '@/types/database';
 import { Button } from '@/components/ui/button';
+import { formatCurrency } from '@/lib/format';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
@@ -71,14 +72,6 @@ export function PartMasterClient({ initialItems, categories }: PartMasterClientP
         } catch (error: any) {
             throw error;
         }
-    };
-
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0,
-        }).format(value);
     };
 
     return (
