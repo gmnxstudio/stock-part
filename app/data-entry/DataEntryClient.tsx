@@ -32,7 +32,6 @@ export function DataEntryClient({ items, staff }: DataEntryClientProps) {
         date: new Date().toISOString().split('T')[0],
         pic_id: '',
         witness_id: '',
-        note_number: '',
         remarks: '',
     });
 
@@ -51,7 +50,6 @@ export function DataEntryClient({ items, staff }: DataEntryClientProps) {
                 date: formData.date,
                 pic_id: formData.pic_id ? Number(formData.pic_id) : undefined,
                 witness_id: formData.witness_id ? Number(formData.witness_id) : undefined,
-                note_number: formData.note_number || undefined,
                 remarks: formData.remarks || undefined,
             });
 
@@ -61,7 +59,6 @@ export function DataEntryClient({ items, staff }: DataEntryClientProps) {
                 ...formData,
                 item_id: '',
                 qty: '',
-                note_number: '',
                 remarks: '',
             });
         } catch (error: any) {
@@ -216,18 +213,7 @@ export function DataEntryClient({ items, staff }: DataEntryClientProps) {
                             </Select>
                         </div>
 
-                        <div>
-                            <Label htmlFor="note_number">Nomor Nota/Surat Jalan</Label>
-                            <Input
-                                id="note_number"
-                                value={formData.note_number}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, note_number: e.target.value })
-                                }
-                                className="mt-1"
-                                placeholder="Opsional"
-                            />
-                        </div>
+
 
                         <div>
                             <Label htmlFor="remarks">Keterangan</Label>
@@ -253,7 +239,6 @@ export function DataEntryClient({ items, staff }: DataEntryClientProps) {
                                 ...formData,
                                 item_id: '',
                                 qty: '',
-                                note_number: '',
                                 remarks: '',
                             })
                         }

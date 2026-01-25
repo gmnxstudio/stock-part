@@ -33,10 +33,9 @@ export interface Transaction {
   type: 'MASUK' | 'KELUAR';
   qty: number;
   date: string;
-  pic_id?: number;
-  witness_id?: number;
-  note_number?: string;
-  remarks?: string;
+  pic_id?: number | null;
+  witness_id?: number | null;
+  remarks?: string | null;
   created_at?: string;
   // Joined fields
   item?: Item;
