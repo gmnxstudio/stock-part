@@ -11,7 +11,8 @@ export function MainLayout({ children }: { children: ReactNode }) {
 
             {/* Main Content */}
             <main className="flex-1 overflow-y-auto">
-                <div className="container mx-auto p-6">
+                {/* Add padding-top for mobile to account for fixed header */}
+                <div className="container mx-auto p-4 md:p-6 lg:pt-6 pt-20">
                     {children}
                 </div>
             </main>

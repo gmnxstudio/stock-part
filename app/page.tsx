@@ -36,7 +36,7 @@ export default async function Dashboard() {
       )}
 
       {/* Statistics Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {/* Total Asset Value */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
