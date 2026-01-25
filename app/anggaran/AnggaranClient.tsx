@@ -9,14 +9,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate } from '@/lib/format';
-import { Download, Plus, Trash2 } from 'lucide-react';
+import { Download, Plus, Trash2, Check, ChevronsUpDown } from 'lucide-react';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from '@/components/ui/command';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 interface AnggaranClientProps {
     stockInfo: StockInfo[];
@@ -34,6 +41,7 @@ interface BudgetItem {
 export function AnggaranClient({ stockInfo }: AnggaranClientProps) {
     const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
     const [selectedItemId, setSelectedItemId] = useState<string>('');
+    const [openCombobox, setOpenCombobox] = useState(false);
     const [budgetName, setBudgetName] = useState('Anggaran Belanja');
     const [budgetDate, setBudgetDate] = useState(new Date().toISOString().split('T')[0]);
 
@@ -186,34 +194,68 @@ export function AnggaranClient({ stockInfo }: AnggaranClientProps) {
             <Card className="p-6">
                 <h3 className="font-semibold text-lg mb-4">Tambah Barang ke Anggaran</h3>
                 <div className="flex gap-3">
-                    <Select value={selectedItemId} onValueChange={setSelectedItemId}>
-                        <SelectTrigger className="flex-1">
-                            <SelectValue placeholder="Pilih barang..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {stockInfo.map((item) => (
-                                <SelectItem key={item.item_id} value={item.item_id.toString()}>
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-mono text-xs text-gray-500">
-                                            {item.item_code}
-                                        </span>
-                                        <span>{item.item_name}</span>
-                                        <Badge
-                                            variant="secondary"
-                                            className={`ml-2 ${item.status === 'HABIS'
-                                                    ? 'bg-red-500 text-white'
-                                                    : item.status === 'RENDAH'
-                                                        ? 'bg-yellow-500 text-white'
-                                                        : 'bg-green-500 text-white'
-                                                }`}
-                                        >
-                                            Stok: {item.current_stock}
-                                        </Badge>
-                                    </div>
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={openCombobox}
+                                className="flex-1 justify-between font-normal h-10"
+                            >
+                                {selectedItemId
+                                    ? (() => {
+                                        const item = stockInfo.find((i) => i.item_id.toString() === selectedItemId);
+                                        return item ? `${item.item_code} - ${item.item_name}` : "Pilih barang...";
+                                    })()
+                                    : "Pilih barang..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[500px] p-0" align="start">
+                            <Command>
+                                <CommandInput placeholder="Cari barang..." />
+                                <CommandList>
+                                    <CommandEmpty>Barang tidak ditemukan.</CommandEmpty>
+                                    <CommandGroup>
+                                        {stockInfo.map((item) => (
+                                            <CommandItem
+                                                key={item.item_id}
+                                                value={`${item.item_code} ${item.item_name}`}
+                                                onSelect={() => {
+                                                    setSelectedItemId(item.item_id.toString());
+                                                    setOpenCombobox(false);
+                                                }}
+                                            >
+                                                <Check
+                                                    className={cn(
+                                                        "mr-2 h-4 w-4",
+                                                        selectedItemId === item.item_id.toString() ? "opacity-100" : "opacity-0"
+                                                    )}
+                                                />
+                                                <div className="flex items-center gap-2 flex-1">
+                                                    <div className="flex flex-col flex-1">
+                                                        <span className="font-medium">{item.item_name}</span>
+                                                        <span className="text-xs text-gray-500">{item.item_code}</span>
+                                                    </div>
+                                                    <Badge
+                                                        variant="secondary"
+                                                        className={`ml-2 ${item.status === 'HABIS'
+                                                            ? 'bg-red-500 text-white'
+                                                            : item.status === 'RENDAH'
+                                                                ? 'bg-yellow-500 text-white'
+                                                                : 'bg-green-500 text-white'
+                                                            }`}
+                                                    >
+                                                        Stok: {item.current_stock}
+                                                    </Badge>
+                                                </div>
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
                     <Button
                         onClick={handleAddItem}
                         disabled={!selectedItemId}
