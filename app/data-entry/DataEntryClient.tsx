@@ -13,9 +13,23 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from '@/components/ui/command';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Check, ChevronsUpDown } from 'lucide-react';
 import { createTransaction } from '@/services/transaction.service';
+import { cn } from '@/lib/utils';
 
 interface DataEntryClientProps {
     items: Item[];
@@ -25,6 +39,7 @@ interface DataEntryClientProps {
 export function DataEntryClient({ items, staff }: DataEntryClientProps) {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
+    const [openCombobox, setOpenCombobox] = useState(false);
     const [formData, setFormData] = useState({
         item_id: '',
         type: 'MASUK',
@@ -104,23 +119,56 @@ export function DataEntryClient({ items, staff }: DataEntryClientProps) {
                         </div>
 
                         <div>
-                            <Label htmlFor="item_id">Nama Barang *</Label>
-                            <Select
-                                value={formData.item_id}
-                                onValueChange={(value) => setFormData({ ...formData, item_id: value })}
-                                required
-                            >
-                                <SelectTrigger className="mt-1">
-                                    <SelectValue placeholder="Pilih barang..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {items.map((item) => (
-                                        <SelectItem key={item.id} value={item.id.toString()}>
-                                            {item.item_code} - {item.item_name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <Label>Nama Barang *</Label>
+                            <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        aria-expanded={openCombobox}
+                                        className="w-full justify-between mt-1 font-normal h-10"
+                                    >
+                                        {formData.item_id
+                                            ? (() => {
+                                                const item = items.find((i) => i.id.toString() === formData.item_id);
+                                                return item ? `${item.item_code} - ${item.item_name}` : "Pilih barang...";
+                                            })()
+                                            : "Pilih barang..."}
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[400px] p-0" align="start">
+                                    <Command>
+                                        <CommandInput placeholder="Cari barang..." />
+                                        <CommandList>
+                                            <CommandEmpty>Barang tidak ditemukan.</CommandEmpty>
+                                            <CommandGroup>
+                                                {items.map((item) => (
+                                                    <CommandItem
+                                                        key={item.id}
+                                                        value={`${item.item_code} ${item.item_name}`}
+                                                        onSelect={() => {
+                                                            setFormData({ ...formData, item_id: item.id.toString() });
+                                                            setOpenCombobox(false);
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                "mr-2 h-4 w-4",
+                                                                formData.item_id === item.id.toString() ? "opacity-100" : "opacity-0"
+                                                            )}
+                                                        />
+                                                        <div className="flex flex-col flex-1">
+                                                            <span className="font-medium">{item.item_name}</span>
+                                                            <span className="text-xs text-gray-500">{item.item_code}</span>
+                                                        </div>
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
                         </div>
 
                         {selectedItem && (
@@ -212,7 +260,6 @@ export function DataEntryClient({ items, staff }: DataEntryClientProps) {
                                 </SelectContent>
                             </Select>
                         </div>
-
 
 
                         <div>
