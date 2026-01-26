@@ -32,15 +32,15 @@ export function RiwayatClient({ initialTransactions }: RiwayatClientProps) {
     };
 
     const TransactionTable = ({ data }: { data: Transaction[] }) => (
-        <div className="border rounded-lg">
+        <div className="border rounded-lg overflow-hidden">
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Tanggal</TableHead>
-                        <TableHead>Barang</TableHead>
-                        <TableHead>Tipe</TableHead>
-                        <TableHead className="text-right">Jumlah</TableHead>
-                        <TableHead>PIC</TableHead>
+                        <TableHead className="w-[120px]">Tanggal</TableHead>
+                        <TableHead className="min-w-[200px]">Barang</TableHead>
+                        <TableHead className="w-[100px]">Tipe</TableHead>
+                        <TableHead className="text-right w-[100px]">Jumlah</TableHead>
+                        <TableHead className="w-[150px]">PIC</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -53,7 +53,7 @@ export function RiwayatClient({ initialTransactions }: RiwayatClientProps) {
                     ) : (
                         data.map((trans) => (
                             <TableRow key={trans.id}>
-                                <TableCell>
+                                <TableCell className="whitespace-nowrap">
                                     {formatDate(trans.date)}
                                 </TableCell>
                                 <TableCell className="font-medium">
