@@ -208,7 +208,7 @@ export function AnggaranClient({ stockInfo }: AnggaranClientProps) {
             {/* Add Item Section */}
             <Card className="p-6">
                 <h3 className="font-semibold text-lg mb-4">Tambah Barang ke Anggaran</h3>
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                     <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
                         <PopoverTrigger asChild>
                             <Button
@@ -226,11 +226,16 @@ export function AnggaranClient({ stockInfo }: AnggaranClientProps) {
                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[500px] p-0" align="start">
-                            <Command>
-                                <CommandInput placeholder="Cari barang..." />
-                                <CommandList>
-                                    <CommandEmpty>Barang tidak ditemukan.</CommandEmpty>
+                        <PopoverContent
+                            className="w-[var(--radix-popover-trigger-width)] sm:w-[500px] p-0"
+                            align="start"
+                            side="bottom"
+                            sideOffset={4}
+                        >
+                            <Command className="rounded-lg border shadow-md">
+                                <CommandInput placeholder="Cari barang..." className="h-12" />
+                                <CommandList className="max-h-[60vh] overflow-y-auto">
+                                    <CommandEmpty className="py-6 text-center text-sm">Barang tidak ditemukan.</CommandEmpty>
                                     <CommandGroup>
                                         {stockInfo.map((item) => (
                                             <CommandItem
@@ -240,21 +245,22 @@ export function AnggaranClient({ stockInfo }: AnggaranClientProps) {
                                                     setSelectedItemId(item.item_id.toString());
                                                     setOpenCombobox(false);
                                                 }}
+                                                className="min-h-[3.5rem] py-3 cursor-pointer"
                                             >
                                                 <Check
                                                     className={cn(
-                                                        "mr-2 h-4 w-4",
+                                                        "mr-2 h-4 w-4 flex-shrink-0",
                                                         selectedItemId === item.item_id.toString() ? "opacity-100" : "opacity-0"
                                                     )}
                                                 />
-                                                <div className="flex items-center gap-2 flex-1">
-                                                    <div className="flex flex-col flex-1">
-                                                        <span className="font-medium">{item.item_name}</span>
+                                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                                    <div className="flex flex-col flex-1 min-w-0">
+                                                        <span className="font-medium truncate">{item.item_name}</span>
                                                         <span className="text-xs text-gray-500">{item.item_code}</span>
                                                     </div>
                                                     <Badge
                                                         variant="secondary"
-                                                        className={`ml-2 ${item.status === 'HABIS'
+                                                        className={`ml-2 flex-shrink-0 ${item.status === 'HABIS'
                                                             ? 'bg-red-500 text-white'
                                                             : item.status === 'RENDAH'
                                                                 ? 'bg-yellow-500 text-white'

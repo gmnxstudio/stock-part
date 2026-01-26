@@ -138,11 +138,16 @@ export function DataEntryClient({ items, staff }: DataEntryClientProps) {
                                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                     </Button>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-[400px] p-0" align="start">
-                                    <Command>
-                                        <CommandInput placeholder="Cari barang..." />
-                                        <CommandList>
-                                            <CommandEmpty>Barang tidak ditemukan.</CommandEmpty>
+                                <PopoverContent
+                                    className="w-[var(--radix-popover-trigger-width)] p-0"
+                                    align="start"
+                                    side="bottom"
+                                    sideOffset={4}
+                                >
+                                    <Command className="rounded-lg border shadow-md">
+                                        <CommandInput placeholder="Cari barang..." className="h-12" />
+                                        <CommandList className="max-h-[60vh] overflow-y-auto">
+                                            <CommandEmpty className="py-6 text-center text-sm">Barang tidak ditemukan.</CommandEmpty>
                                             <CommandGroup>
                                                 {items.map((item) => (
                                                     <CommandItem
@@ -152,15 +157,16 @@ export function DataEntryClient({ items, staff }: DataEntryClientProps) {
                                                             setFormData({ ...formData, item_id: item.id.toString() });
                                                             setOpenCombobox(false);
                                                         }}
+                                                        className="min-h-[3rem] py-3 cursor-pointer"
                                                     >
                                                         <Check
                                                             className={cn(
-                                                                "mr-2 h-4 w-4",
+                                                                "mr-2 h-4 w-4 flex-shrink-0",
                                                                 formData.item_id === item.id.toString() ? "opacity-100" : "opacity-0"
                                                             )}
                                                         />
-                                                        <div className="flex flex-col flex-1">
-                                                            <span className="font-medium">{item.item_name}</span>
+                                                        <div className="flex flex-col flex-1 min-w-0">
+                                                            <span className="font-medium truncate">{item.item_name}</span>
                                                             <span className="text-xs text-gray-500">{item.item_code}</span>
                                                         </div>
                                                     </CommandItem>
