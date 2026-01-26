@@ -41,13 +41,12 @@ export function RiwayatClient({ initialTransactions }: RiwayatClientProps) {
                         <TableHead>Tipe</TableHead>
                         <TableHead className="text-right">Jumlah</TableHead>
                         <TableHead>PIC</TableHead>
-                        <TableHead>Nota</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {data.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                            <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                                 Tidak ada data
                             </TableCell>
                         </TableRow>
@@ -76,9 +75,6 @@ export function RiwayatClient({ initialTransactions }: RiwayatClientProps) {
                                     {trans.type === 'MASUK' ? '+' : '-'} {trans.qty}
                                 </TableCell>
                                 <TableCell>{(trans.pic as any)?.name || '-'}</TableCell>
-                                <TableCell className="text-sm text-gray-600">
-                                    {trans.note_number || '-'}
-                                </TableCell>
                             </TableRow>
                         ))
                     )}
