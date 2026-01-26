@@ -30,6 +30,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, Check, ChevronsUpDown } from 'lucide-react';
 import { createTransaction } from '@/services/transaction.service';
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/lib/format';
 
 interface DataEntryClientProps {
     items: Item[];
@@ -185,7 +186,7 @@ export function DataEntryClient({ items, staff }: DataEntryClientProps) {
                                     <div>
                                         <span className="text-gray-600">Harga:</span>{' '}
                                         <strong>
-                                            Rp {selectedItem.buying_price.toLocaleString('id-ID')}
+                                            {formatCurrency(selectedItem.buying_price)}
                                         </strong>
                                     </div>
                                 </div>
