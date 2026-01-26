@@ -2,43 +2,80 @@
 
 import { supabase, handleSupabaseError } from '@/lib/supabase';
 import { Item, Category, Staff } from '@/types/database';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { unstable_cache } from 'next/cache';
 
-// Get all items with categories
+/**
+ * OPTIMIZED DATA SERVICE
+ * - Selective column queries (no SELECT *)
+ * - Aggressive caching for reference data
+ * - Revalidation on mutations
+ */
+
+// Get all items with categories (select only needed columns)
 export async function getAllItems(): Promise<Item[]> {
     const { data, error } = await supabase
         .from('items')
-        .select(`
-      *,
-      category:categories(*)
-    `)
+        .select(
+            `
+      id,
+      item_code,
+      item_name,
+      category_id,
+      unit,
+      min_stock,
+      buying_price,
+      created_at,
+      category:categories(id, name)
+    `
+        )
         .order('item_name');
 
     if (error) handleSupabaseError(error, 'getAllItems');
     return (data || []) as Item[];
 }
 
-// Get all categories
-export async function getAllCategories(): Promise<Category[]> {
-    const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
+/**
+ * Get all categories (cached for 5 minutes)
+ * Categories rarely change, so aggressive caching is safe
+ */
+export const getAllCategories = unstable_cache(
+    async (): Promise<Category[]> => {
+        const { data, error } = await supabase
+            .from('categories')
+            .select('id, name, created_at')
+            .order('name');
 
-    if (error) handleSupabaseError(error, 'getAllCategories');
-    return data || [];
-}
+        if (error) handleSupabaseError(error, 'getAllCategories');
+        return data || [];
+    },
+    ['categories-all'],
+    {
+        revalidate: 300, // 5 minutes
+        tags: ['categories'],
+    }
+);
 
-// Get all staff
-export async function getAllStaff(): Promise<Staff[]> {
-    const { data, error } = await supabase
-        .from('staff')
-        .select('*')
-        .order('name');
+/**
+ * Get all staff (cached for 5 minutes)
+ * Staff list rarely changes
+ */
+export const getAllStaff = unstable_cache(
+    async (): Promise<Staff[]> => {
+        const { data, error } = await supabase
+            .from('staff')
+            .select('id, name, position, created_at')
+            .order('name');
 
-    if (error) handleSupabaseError(error, 'getAllStaff');
-    return data || [];
-}
+        if (error) handleSupabaseError(error, 'getAllStaff');
+        return data || [];
+    },
+    ['staff-all'],
+    {
+        revalidate: 300, // 5 minutes
+        tags: ['staff'],
+    }
+);
 
 // Create item
 export async function createItem(itemData: Omit<Item, 'id' | 'created_at'>) {
@@ -50,8 +87,11 @@ export async function createItem(itemData: Omit<Item, 'id' | 'created_at'>) {
 
     if (error) handleSupabaseError(error, 'createItem');
 
+    // Revalidate affected pages and caches
     revalidatePath('/part-master');
     revalidatePath('/');
+    revalidateTag('stock');
+
     return data;
 }
 
@@ -68,20 +108,20 @@ export async function updateItem(id: number, itemData: Partial<Item>) {
 
     revalidatePath('/part-master');
     revalidatePath('/');
+    revalidateTag('stock');
+
     return data;
 }
 
 // Delete item
 export async function deleteItem(id: number) {
-    const { error } = await supabase
-        .from('items')
-        .delete()
-        .eq('id', id);
+    const { error } = await supabase.from('items').delete().eq('id', id);
 
     if (error) handleSupabaseError(error, 'deleteItem');
 
     revalidatePath('/part-master');
     revalidatePath('/');
+    revalidateTag('stock');
 }
 
 // Create category
@@ -93,6 +133,10 @@ export async function createCategory(name: string) {
         .single();
 
     if (error) handleSupabaseError(error, 'createCategory');
+
+    // Invalidate categories cache
+    revalidateTag('categories');
+
     return data;
 }
 
@@ -105,5 +149,9 @@ export async function createStaff(staffData: Omit<Staff, 'id' | 'created_at'>) {
         .single();
 
     if (error) handleSupabaseError(error, 'createStaff');
+
+    // Invalidate staff cache
+    revalidateTag('staff');
+
     return data;
 }

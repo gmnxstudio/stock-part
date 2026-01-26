@@ -16,8 +16,26 @@ if (!supabaseUrl || !supabaseAnonKey) {
     );
 }
 
-// Create Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Configure URL for transaction pooler (port 6543) for better performance
+// Only use pooler URL in production, use direct connection in development
+const poolerUrl = supabaseUrl.replace(':5432', ':6543');
+const connectionUrl = process.env.NODE_ENV === 'production' ? poolerUrl : supabaseUrl;
+
+// Create Supabase client with optimized settings for free tier
+export const supabase = createClient(connectionUrl, supabaseAnonKey, {
+    auth: {
+        persistSession: false, // Disable session persistence for server-side
+        autoRefreshToken: false,
+    },
+    db: {
+        schema: 'public',
+    },
+    global: {
+        headers: {
+            'x-application-name': 'stock-management',
+        },
+    },
+});
 
 // Helper function to handle Supabase errors
 export function handleSupabaseError(error: any, context: string) {
