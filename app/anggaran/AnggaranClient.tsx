@@ -116,6 +116,7 @@ export function AnggaranClient({ stockInfo }: AnggaranClientProps) {
 
         // Budget info
         doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
         doc.text(`Nama Anggaran: ${budgetName}`, 14, 45);
         doc.text(`Tanggal: ${formatDate(budgetDate)}`, 14, 52);
 
@@ -136,9 +137,22 @@ export function AnggaranClient({ stockInfo }: AnggaranClientProps) {
             body: tableData,
             foot: [['', '', '', '', '', 'GRAND TOTAL', formatCurrency(grandTotal)]],
             theme: 'grid',
-            headStyles: { fillColor: [0, 156, 228], fontSize: 9, fontStyle: 'bold' },
-            footStyles: { fillColor: [240, 240, 240], fontSize: 10, fontStyle: 'bold' },
-            styles: { fontSize: 9 },
+            headStyles: {
+                fillColor: [0, 156, 228],
+                fontSize: 9,
+                fontStyle: 'bold',
+                textColor: [255, 255, 255]
+            },
+            footStyles: {
+                fillColor: [126, 185, 62], // Green color (#7eb93e)
+                fontSize: 10,
+                fontStyle: 'bold',
+                textColor: [0, 0, 0] // Black text
+            },
+            styles: {
+                fontSize: 9,
+                font: 'helvetica'
+            },
             columnStyles: {
                 0: { cellWidth: 10, halign: 'center' },
                 1: { cellWidth: 25 },
@@ -153,6 +167,7 @@ export function AnggaranClient({ stockInfo }: AnggaranClientProps) {
         // Footer
         const finalY = (doc as any).lastAutoTable.finalY || 60;
         doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
         doc.text(
             `Dicetak pada: ${formatDate(new Date().toISOString())}`,
             14,
