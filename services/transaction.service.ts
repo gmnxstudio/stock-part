@@ -27,9 +27,9 @@ export async function createTransaction(transData: TransactionFormData) {
 
     if (error) handleSupabaseError(error, 'createTransaction');
 
-    revalidatePath('/');
-    revalidatePath('/riwayat');
-    revalidatePath('/data-entry');
+    revalidatePath('/', 'page');
+    revalidatePath('/riwayat', 'page');
+    revalidatePath('/data-entry', 'page');
     return data;
 }
 

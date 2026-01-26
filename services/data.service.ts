@@ -32,7 +32,7 @@ export async function getAllItems(): Promise<Item[]> {
         .order('item_name');
 
     if (error) handleSupabaseError(error, 'getAllItems');
-    return (data || []) as Item[];
+    return (data || []) as unknown as Item[];
 }
 
 /**
@@ -88,9 +88,9 @@ export async function createItem(itemData: Omit<Item, 'id' | 'created_at'>) {
     if (error) handleSupabaseError(error, 'createItem');
 
     // Revalidate affected pages and caches
-    revalidatePath('/part-master');
-    revalidatePath('/');
-    revalidateTag('stock');
+    revalidatePath('/part-master', 'page');
+    revalidatePath('/', 'page');
+    revalidateTag('stock', 'page');
 
     return data;
 }
@@ -106,9 +106,9 @@ export async function updateItem(id: number, itemData: Partial<Item>) {
 
     if (error) handleSupabaseError(error, 'updateItem');
 
-    revalidatePath('/part-master');
-    revalidatePath('/');
-    revalidateTag('stock');
+    revalidatePath('/part-master', 'page');
+    revalidatePath('/', 'page');
+    revalidateTag('stock', 'page');
 
     return data;
 }
@@ -119,9 +119,9 @@ export async function deleteItem(id: number) {
 
     if (error) handleSupabaseError(error, 'deleteItem');
 
-    revalidatePath('/part-master');
-    revalidatePath('/');
-    revalidateTag('stock');
+    revalidatePath('/part-master', 'page');
+    revalidatePath('/', 'page');
+    revalidateTag('stock', 'page');
 }
 
 // Create category
@@ -135,7 +135,7 @@ export async function createCategory(name: string) {
     if (error) handleSupabaseError(error, 'createCategory');
 
     // Invalidate categories cache
-    revalidateTag('categories');
+    revalidateTag('categories', 'page');
 
     return data;
 }
@@ -151,7 +151,7 @@ export async function createStaff(staffData: Omit<Staff, 'id' | 'created_at'>) {
     if (error) handleSupabaseError(error, 'createStaff');
 
     // Invalidate staff cache
-    revalidateTag('staff');
+    revalidateTag('staff', 'page');
 
     return data;
 }
