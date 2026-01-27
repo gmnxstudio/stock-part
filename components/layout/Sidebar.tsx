@@ -90,7 +90,7 @@ export function Sidebar() {
                     </SheetContent>
                 </Sheet>
                 <h1 className="text-sm font-bold text-gray-900">
-                    STOK BARANG UPL
+                    STOK & SPAREPART UPL
                 </h1>
             </div>
 
