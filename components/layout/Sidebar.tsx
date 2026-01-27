@@ -34,7 +34,7 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
             {/* Logo/Header */}
             <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200 bg-[#009ce4]">
                 <h1 className="text-base md:text-lg font-bold text-white text-center leading-tight">
-                    STOK BARANG<br />ULU PLASTIK LATERSIA
+                    ASET<br />ULU PLASTIK LATERSIA
                 </h1>
             </div>
 
