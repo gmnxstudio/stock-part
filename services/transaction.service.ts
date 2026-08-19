@@ -4,14 +4,18 @@ import { supabase, handleSupabaseError } from '@/lib/supabase';
 import { Transaction, TransactionFormData } from '@/types/database';
 import { validateStockForTransaction } from './stock.service';
 import { revalidatePath } from 'next/cache';
+import { transactionSchema } from '@/lib/validations';
 
 // Create transaction
 export async function createTransaction(transData: TransactionFormData) {
+    // Validate inputs
+    const validated = transactionSchema.parse(transData);
+
     // Validate stock for outgoing transactions
-    if (transData.type === 'KELUAR') {
+    if (validated.type === 'KELUAR') {
         const validation = await validateStockForTransaction(
-            transData.item_id,
-            transData.qty
+            validated.item_id,
+            validated.qty
         );
 
         if (!validation.valid) {
@@ -21,7 +25,7 @@ export async function createTransaction(transData: TransactionFormData) {
 
     const { data, error } = await supabase
         .from('transactions')
-        .insert([transData])
+        .insert([validated])
         .select()
         .single();
 

@@ -4,6 +4,7 @@ import { supabase, handleSupabaseError } from '@/lib/supabase';
 import { Item, Category, Staff } from '@/types/database';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { unstable_cache } from 'next/cache';
+import { itemSchema } from '@/lib/validations';
 
 /**
  * OPTIMIZED DATA SERVICE
@@ -79,9 +80,12 @@ export const getAllStaff = unstable_cache(
 
 // Create item
 export async function createItem(itemData: Omit<Item, 'id' | 'created_at'>) {
+    // Validate inputs
+    const validated = itemSchema.parse(itemData);
+
     const { data, error } = await supabase
         .from('items')
-        .insert([itemData])
+        .insert([validated])
         .select()
         .single();
 
@@ -90,16 +94,19 @@ export async function createItem(itemData: Omit<Item, 'id' | 'created_at'>) {
     // Revalidate affected pages and caches
     revalidatePath('/part-master', 'page');
     revalidatePath('/', 'page');
-    revalidateTag('stock', 'page');
+    revalidateTag('stock', 'max');
 
     return data;
 }
 
 // Update item
 export async function updateItem(id: number, itemData: Partial<Item>) {
+    // Validate updates (partial validation)
+    const validated = itemSchema.partial().parse(itemData);
+
     const { data, error } = await supabase
         .from('items')
-        .update(itemData)
+        .update(validated)
         .eq('id', id)
         .select()
         .single();
@@ -108,7 +115,7 @@ export async function updateItem(id: number, itemData: Partial<Item>) {
 
     revalidatePath('/part-master', 'page');
     revalidatePath('/', 'page');
-    revalidateTag('stock', 'page');
+    revalidateTag('stock', 'max');
 
     return data;
 }
@@ -121,7 +128,7 @@ export async function deleteItem(id: number) {
 
     revalidatePath('/part-master', 'page');
     revalidatePath('/', 'page');
-    revalidateTag('stock', 'page');
+    revalidateTag('stock', 'max');
 }
 
 // Create category
@@ -135,7 +142,7 @@ export async function createCategory(name: string) {
     if (error) handleSupabaseError(error, 'createCategory');
 
     // Invalidate categories cache
-    revalidateTag('categories', 'page');
+    revalidateTag('categories', 'max');
 
     return data;
 }
@@ -151,7 +158,7 @@ export async function createStaff(staffData: Omit<Staff, 'id' | 'created_at'>) {
     if (error) handleSupabaseError(error, 'createStaff');
 
     // Invalidate staff cache
-    revalidateTag('staff', 'page');
+    revalidateTag('staff', 'max');
 
     return data;
 }
