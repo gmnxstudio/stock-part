@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Item } from '@/types/database';
 import {
     Dialog,
@@ -36,13 +36,26 @@ export function ItemFormDialog({
 }: ItemFormDialogProps) {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
-        item_code: item?.item_code || '',
-        item_name: item?.item_name || '',
-        category_id: item?.category_id?.toString() || '',
-        unit: item?.unit || '',
-        min_stock: item?.min_stock?.toString() || '0',
-        buying_price: item?.buying_price?.toString() || '0',
+        item_code: '',
+        item_name: '',
+        category_id: '',
+        unit: '',
+        min_stock: '0',
+        buying_price: '0',
     });
+
+    useEffect(() => {
+        if (open) {
+            setFormData({
+                item_code: item?.item_code || '',
+                item_name: item?.item_name || '',
+                category_id: item?.category_id?.toString() || '',
+                unit: item?.unit || '',
+                min_stock: item?.min_stock?.toString() || '0',
+                buying_price: item?.buying_price?.toString() || '0',
+            });
+        }
+    }, [item, open]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
