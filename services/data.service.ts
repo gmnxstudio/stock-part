@@ -86,7 +86,19 @@ export async function createItem(itemData: Omit<Item, 'id' | 'created_at'>) {
     const { data, error } = await supabase
         .from('items')
         .insert([validated])
-        .select()
+        .select(
+            `
+          id,
+          item_code,
+          item_name,
+          category_id,
+          unit,
+          min_stock,
+          buying_price,
+          created_at,
+          category:categories(id, name)
+        `
+        )
         .single();
 
     if (error) handleSupabaseError(error, 'createItem');
@@ -96,7 +108,7 @@ export async function createItem(itemData: Omit<Item, 'id' | 'created_at'>) {
     revalidatePath('/', 'page');
     revalidateTag('stock', 'max');
 
-    return data;
+    return data as unknown as Item;
 }
 
 // Update item
@@ -108,7 +120,19 @@ export async function updateItem(id: number, itemData: Partial<Item>) {
         .from('items')
         .update(validated)
         .eq('id', id)
-        .select()
+        .select(
+            `
+          id,
+          item_code,
+          item_name,
+          category_id,
+          unit,
+          min_stock,
+          buying_price,
+          created_at,
+          category:categories(id, name)
+        `
+        )
         .single();
 
     if (error) handleSupabaseError(error, 'updateItem');
@@ -117,7 +141,7 @@ export async function updateItem(id: number, itemData: Partial<Item>) {
     revalidatePath('/', 'page');
     revalidateTag('stock', 'max');
 
-    return data;
+    return data as unknown as Item;
 }
 
 // Delete item
