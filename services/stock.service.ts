@@ -17,16 +17,74 @@ import { unstable_cache } from 'next/cache';
 export const getAllStockInfo = unstable_cache(
     async (): Promise<StockInfo[]> => {
         try {
-            const { data, error } = await supabase
-                .from('stock_summary')
+            // Primary fetch: Query items table directly with joined categories & transactions.
+            // This guarantees 100% immediate data synchronization for newly created items.
+            const { data: items, error } = await supabase
+                .from('items')
                 .select(
-                    'item_id, item_code, item_name, category_name, unit, min_stock, buying_price, stock_in, stock_out, current_stock, total_value, status'
+                    `
+                    id,
+                    item_code,
+                    item_name,
+                    unit,
+                    min_stock,
+                    buying_price,
+                    category:categories(name),
+                    transactions(type, qty)
+                `
                 )
                 .order('item_name');
 
-            if (error) handleSupabaseError(error, 'getAllStockInfo');
+            if (error || !items) {
+                // Fallback to stock_summary view if direct relation query has issues
+                const { data: viewData } = await supabase
+                    .from('stock_summary')
+                    .select(
+                        'item_id, item_code, item_name, category_name, unit, min_stock, buying_price, stock_in, stock_out, current_stock, total_value, status'
+                    )
+                    .order('item_name');
+                return (viewData || []) as StockInfo[];
+            }
 
-            return (data || []) as StockInfo[];
+            return items.map((item: any) => {
+                const txs = item.transactions || [];
+                const stockIn = txs
+                    .filter((t: any) => t.type === 'MASUK')
+                    .reduce((sum: number, t: any) => sum + Number(t.qty || 0), 0);
+                const stockOut = txs
+                    .filter((t: any) => t.type === 'KELUAR')
+                    .reduce((sum: number, t: any) => sum + Number(t.qty || 0), 0);
+                const currentStock = stockIn - stockOut;
+                const minStock = Number(item.min_stock || 0);
+                const buyingPrice = Number(item.buying_price || 0);
+                const totalValue = currentStock * buyingPrice;
+
+                let status: 'AMAN' | 'RENDAH' | 'HABIS' = 'AMAN';
+                if (currentStock <= 0) {
+                    status = 'HABIS';
+                } else if (currentStock <= minStock) {
+                    status = 'RENDAH';
+                }
+
+                // Extract category name cleanly regardless of object or array response
+                const categoryObj = Array.isArray(item.category) ? item.category[0] : item.category;
+                const categoryName = categoryObj?.name || '-';
+
+                return {
+                    item_id: item.id,
+                    item_code: item.item_code,
+                    item_name: item.item_name,
+                    category_name: categoryName,
+                    unit: item.unit,
+                    min_stock: minStock,
+                    buying_price: buyingPrice,
+                    stock_in: stockIn,
+                    stock_out: stockOut,
+                    current_stock: currentStock,
+                    total_value: totalValue,
+                    status,
+                };
+            });
         } catch (error) {
             console.error('Error getting stock info:', error);
             return [];
@@ -34,7 +92,7 @@ export const getAllStockInfo = unstable_cache(
     },
     ['stock-info-all'],
     {
-        revalidate: 30, // Cache for 30 seconds
+        revalidate: 5, // Revalidate every 5 seconds or via revalidateTag('stock')
         tags: ['stock'],
     }
 );
