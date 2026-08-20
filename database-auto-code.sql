@@ -108,9 +108,23 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 3. BIND TRIGGER TO ITEMS TABLE
+-- 3. BIND TRIGGER TO ITEMS TABLE FOR AUTO-CODE
 DROP TRIGGER IF EXISTS trg_generate_item_code ON items;
 CREATE TRIGGER trg_generate_item_code
 BEFORE INSERT ON items
 FOR EACH ROW
 EXECUTE FUNCTION generate_item_code();
+
+-- 4. BIND TRIGGER TO ITEMS TABLE FOR REFRESHING STOCK SUMMARY VIEW
+-- This ensures new items instantly appear in CariPart and DataEntry
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'trigger_refresh_stock_summary') THEN
+    DROP TRIGGER IF EXISTS auto_refresh_stock_summary_items ON items;
+    CREATE TRIGGER auto_refresh_stock_summary_items
+    AFTER INSERT OR UPDATE OR DELETE ON items
+    FOR EACH STATEMENT
+    EXECUTE FUNCTION trigger_refresh_stock_summary();
+  END IF;
+END $$;
+

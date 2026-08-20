@@ -90,6 +90,15 @@ AFTER INSERT OR UPDATE OR DELETE ON transactions
 FOR EACH STATEMENT
 EXECUTE FUNCTION trigger_refresh_stock_summary();
 
+-- Drop existing trigger if present on items table
+DROP TRIGGER IF EXISTS auto_refresh_stock_summary_items ON items;
+
+-- Create trigger on items table so new items immediately update stock_summary view
+CREATE TRIGGER auto_refresh_stock_summary_items
+AFTER INSERT OR UPDATE OR DELETE ON items
+FOR EACH STATEMENT
+EXECUTE FUNCTION trigger_refresh_stock_summary();
+
 -- =====================================================
 -- INITIAL DATA POPULATION
 -- Run this once to populate the materialized view

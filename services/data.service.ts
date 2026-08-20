@@ -5,6 +5,7 @@ import { Item, Category, Staff } from '@/types/database';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { unstable_cache } from 'next/cache';
 import { itemSchema } from '@/lib/validations';
+import { refreshStockView } from '@/services/stock.service';
 
 /**
  * OPTIMIZED DATA SERVICE
@@ -58,8 +59,7 @@ export const getAllCategories = unstable_cache(
 );
 
 /**
- * Get all staff (cached for 5 minutes)
- * Staff list rarely changes
+ * Get all staff members (cached for 5 minutes)
  */
 export const getAllStaff = unstable_cache(
     async (): Promise<Staff[]> => {
@@ -77,6 +77,18 @@ export const getAllStaff = unstable_cache(
         tags: ['staff'],
     }
 );
+
+// Helper for full revalidation across all routes
+async function revalidateAllItemRoutes() {
+    await refreshStockView();
+    revalidatePath('/part-master', 'page');
+    revalidatePath('/data-entry', 'page');
+    revalidatePath('/cari-part', 'page');
+    revalidatePath('/anggaran', 'page');
+    revalidatePath('/', 'layout');
+    revalidateTag('stock', 'max');
+    revalidateTag('items', 'max');
+}
 
 // Create item
 export async function createItem(itemData: Omit<Item, 'id' | 'created_at'>) {
@@ -104,9 +116,7 @@ export async function createItem(itemData: Omit<Item, 'id' | 'created_at'>) {
     if (error) handleSupabaseError(error, 'createItem');
 
     // Revalidate affected pages and caches
-    revalidatePath('/part-master', 'page');
-    revalidatePath('/', 'page');
-    revalidateTag('stock', 'max');
+    await revalidateAllItemRoutes();
 
     return data as unknown as Item;
 }
@@ -137,9 +147,7 @@ export async function updateItem(id: number, itemData: Partial<Item>) {
 
     if (error) handleSupabaseError(error, 'updateItem');
 
-    revalidatePath('/part-master', 'page');
-    revalidatePath('/', 'page');
-    revalidateTag('stock', 'max');
+    await revalidateAllItemRoutes();
 
     return data as unknown as Item;
 }
@@ -150,9 +158,7 @@ export async function deleteItem(id: number) {
 
     if (error) handleSupabaseError(error, 'deleteItem');
 
-    revalidatePath('/part-master', 'page');
-    revalidatePath('/', 'page');
-    revalidateTag('stock', 'max');
+    await revalidateAllItemRoutes();
 }
 
 // Create category
