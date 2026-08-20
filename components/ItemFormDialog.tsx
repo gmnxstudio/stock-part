@@ -47,7 +47,7 @@ export function ItemFormDialog({
     useEffect(() => {
         if (open) {
             setFormData({
-                item_code: item?.item_code || '',
+                item_code: item?.item_code || '(Otomatis)',
                 item_name: item?.item_name || '',
                 category_id: item?.category_id?.toString() || '',
                 unit: item?.unit || '',
@@ -64,6 +64,7 @@ export function ItemFormDialog({
         try {
             await onSubmit({
                 ...formData,
+                item_code: item ? formData.item_code : '(Otomatis)',
                 category_id: formData.category_id ? Number(formData.category_id) : null,
                 min_stock: Number(formData.min_stock),
                 buying_price: Number(formData.buying_price),
@@ -87,17 +88,18 @@ export function ItemFormDialog({
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <Label htmlFor="item_code">Kode Barang *</Label>
+                        <Label htmlFor="item_code">Kode Barang</Label>
                         <Input
                             id="item_code"
-                            value={formData.item_code}
-                            onChange={(e) =>
-                                setFormData({ ...formData, item_code: e.target.value })
-                            }
-                            placeholder="Contoh: ATK-001"
-                            required
-                            disabled={!!item} // Can't change code for existing items
+                            value={item ? formData.item_code : '(Otomatis)'}
+                            disabled
+                            className="bg-gray-50 font-mono text-gray-600"
                         />
+                        {!item && (
+                            <p className="text-xs text-gray-400 mt-1">
+                                Kode akan digenerate otomatis berdasarkan Kategori yang dipilih.
+                            </p>
+                        )}
                     </div>
 
                     <div>
