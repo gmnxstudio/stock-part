@@ -59,19 +59,35 @@ export function ItemFormDialog({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!formData.category_id) {
+            alert('Kategori wajib dipilih!');
+            return;
+        }
+
+        if (formData.min_stock === '' || Number(formData.min_stock) < 0) {
+            alert('Min. Stok wajib diisi!');
+            return;
+        }
+
+        if (formData.buying_price === '' || Number(formData.buying_price) < 0) {
+            alert('Harga Beli (Rp) wajib diisi!');
+            return;
+        }
+
         setLoading(true);
 
         try {
             await onSubmit({
                 ...formData,
                 item_code: item ? formData.item_code : '(Otomatis)',
-                category_id: formData.category_id ? Number(formData.category_id) : null,
+                category_id: Number(formData.category_id),
                 min_stock: Number(formData.min_stock),
                 buying_price: Number(formData.buying_price),
             });
             onOpenChange(false);
-        } catch (error) {
-            alert('Error menyimpan data');
+        } catch (error: any) {
+            alert(error?.message || 'Error menyimpan data');
         } finally {
             setLoading(false);
         }
@@ -116,12 +132,13 @@ export function ItemFormDialog({
                     </div>
 
                     <div>
-                        <Label htmlFor="category_id">Kategori</Label>
+                        <Label htmlFor="category_id">Kategori *</Label>
                         <Select
                             value={formData.category_id}
                             onValueChange={(value) =>
                                 setFormData({ ...formData, category_id: value })
                             }
+                            required
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder="Pilih kategori" />
@@ -151,7 +168,7 @@ export function ItemFormDialog({
                         </div>
 
                         <div>
-                            <Label htmlFor="min_stock">Min. Stok</Label>
+                            <Label htmlFor="min_stock">Min. Stok *</Label>
                             <Input
                                 id="min_stock"
                                 type="number"
@@ -160,12 +177,13 @@ export function ItemFormDialog({
                                     setFormData({ ...formData, min_stock: e.target.value })
                                 }
                                 min="0"
+                                required
                             />
                         </div>
                     </div>
 
                     <div>
-                        <Label htmlFor="buying_price">Harga Beli (Rp)</Label>
+                        <Label htmlFor="buying_price">Harga Beli (Rp) *</Label>
                         <Input
                             id="buying_price"
                             type="number"
@@ -174,6 +192,7 @@ export function ItemFormDialog({
                                 setFormData({ ...formData, buying_price: e.target.value })
                             }
                             min="0"
+                            required
                             placeholder="0"
                         />
                     </div>
