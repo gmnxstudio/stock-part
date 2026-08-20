@@ -55,6 +55,17 @@ export function DataEntryClient({ items, staff }: DataEntryClientProps) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!formData.item_id) {
+            alert('Barang wajib dipilih!');
+            return;
+        }
+
+        if (!formData.pic_id) {
+            alert('PIC (Penanggung Jawab) wajib dipilih!');
+            return;
+        }
+
         setLoading(true);
         setSuccess(false);
 
@@ -64,7 +75,7 @@ export function DataEntryClient({ items, staff }: DataEntryClientProps) {
                 type: formData.type as 'MASUK' | 'KELUAR',
                 qty: Number(formData.qty),
                 date: formData.date,
-                pic_id: formData.pic_id ? Number(formData.pic_id) : undefined,
+                pic_id: Number(formData.pic_id),
                 witness_id: formData.witness_id ? Number(formData.witness_id) : undefined,
                 remarks: formData.remarks || undefined,
             });
@@ -229,10 +240,11 @@ export function DataEntryClient({ items, staff }: DataEntryClientProps) {
                     {/* Right Column */}
                     <div className="space-y-4">
                         <div>
-                            <Label htmlFor="pic_id">PIC (Penanggung Jawab)</Label>
+                            <Label htmlFor="pic_id">PIC (Penanggung Jawab) *</Label>
                             <Select
                                 value={formData.pic_id}
                                 onValueChange={(value) => setFormData({ ...formData, pic_id: value })}
+                                required
                             >
                                 <SelectTrigger className="mt-1">
                                     <SelectValue placeholder="Pilih PIC..." />

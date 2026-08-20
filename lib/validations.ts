@@ -14,7 +14,7 @@ export const transactionSchema = z.object({
   type: z.enum(['MASUK', 'KELUAR'], { message: 'Tipe transaksi tidak valid' }),
   qty: z.number().positive('Jumlah harus lebih besar dari 0'),
   date: z.string().min(1, 'Tanggal diperlukan'),
-  pic_id: z.number().nullable().optional(),
+  pic_id: z.number({ message: 'PIC (Penanggung Jawab) wajib dipilih' }),
   witness_id: z.number().nullable().optional(),
   note_number: z.string().trim().nullable().optional(),
   remarks: z.string().trim().nullable().optional(),
