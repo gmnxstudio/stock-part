@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -32,8 +33,17 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
     return (
         <div className="flex h-full flex-col">
             {/* Logo/Header */}
-            <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200 bg-[#009ce4]">
-                <h1 className="text-base md:text-lg font-bold text-white text-center leading-tight">
+            <div className="flex items-center gap-3 h-16 px-4 border-b border-gray-200 bg-[#009ce4]">
+                <div className="w-10 h-10 rounded-full bg-white p-1 flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden">
+                    <Image
+                        src="/logo.png"
+                        alt="UPL Logo"
+                        width={36}
+                        height={36}
+                        className="w-full h-full object-contain"
+                    />
+                </div>
+                <h1 className="text-xs md:text-sm font-bold text-white leading-tight">
                     ASET<br />ULU PLASTIK LATERSIA
                 </h1>
             </div>
@@ -77,21 +87,32 @@ export function Sidebar() {
     return (
         <>
             {/* Mobile Header with Hamburger */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-200 h-16 flex items-center px-4">
-                <Sheet open={open} onOpenChange={setOpen}>
-                    <SheetTrigger asChild>
-                        <Button variant="ghost" size="icon" className="mr-2">
-                            <Menu className="w-6 h-6" />
-                        </Button>
-                    </SheetTrigger>
-                    <SheetContent side="left" className="p-0 w-64">
-                        <SheetTitle className="sr-only">Menu Navigasi</SheetTitle>
-                        <SidebarContent onLinkClick={() => setOpen(false)} />
-                    </SheetContent>
-                </Sheet>
-                <h1 className="text-sm font-bold text-gray-900">
-                    STOK & SPAREPART UPL
-                </h1>
+            <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-200 h-16 flex items-center px-4 justify-between">
+                <div className="flex items-center gap-2">
+                    <Sheet open={open} onOpenChange={setOpen}>
+                        <SheetTrigger asChild>
+                            <Button variant="ghost" size="icon" className="mr-1">
+                                <Menu className="w-6 h-6" />
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="p-0 w-64">
+                            <SheetTitle className="sr-only">Menu Navigasi</SheetTitle>
+                            <SidebarContent onLinkClick={() => setOpen(false)} />
+                        </SheetContent>
+                    </Sheet>
+                    <div className="w-8 h-8 rounded-full bg-white p-0.5 border border-gray-200 shadow-sm flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        <Image
+                            src="/logo.png"
+                            alt="UPL Logo"
+                            width={28}
+                            height={28}
+                            className="w-full h-full object-contain"
+                        />
+                    </div>
+                    <h1 className="text-sm font-bold text-gray-900">
+                        STOK & SPAREPART UPL
+                    </h1>
+                </div>
             </div>
 
             {/* Desktop Sidebar */}
