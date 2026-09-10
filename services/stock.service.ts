@@ -212,6 +212,8 @@ export const getDashboardStats = unstable_cache(
                 outOfStockCount: outOfStockItems.length,
                 lowStockCount: lowStockItems.length,
                 criticalItems,
+                outOfStockItems,
+                lowStockItems,
                 recentTransactions: recentTransactions || [],
             };
         } catch (error) {
