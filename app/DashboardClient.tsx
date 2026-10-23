@@ -22,8 +22,9 @@ import {
     Search,
     ChevronRight,
     ExternalLink,
-    Flame,
     Zap,
+    BarChart3,
+    ArrowUpRight,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { StockInfo } from '@/types/database';
@@ -39,16 +40,15 @@ interface DashboardStats {
     outOfStockItems?: StockInfo[];
     lowStockItems?: StockInfo[];
     mostUsedItems?: StockInfo[];
-    frequentlyOutOfStockItems?: StockInfo[];
     recentTransactions: any[];
 }
 
-type TabType = 'HABIS' | 'RENDAH' | 'SERING_HABIS' | 'SERING_DIPAKAI' | 'ALL';
+type TabType = 'HABIS' | 'RENDAH' | 'SERING_DIPAKAI' | 'ALL';
 
 export function DashboardClient({ stats }: { stats: DashboardStats }) {
     // Modal states
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<TabType>('HABIS');
+    const [activeTab, setActiveTab] = useState<TabType>('SERING_DIPAKAI');
     const [searchQuery, setSearchQuery] = useState('');
 
     const openModalWithTab = (tab: TabType) => {
@@ -66,19 +66,9 @@ export function DashboardClient({ stats }: { stats: DashboardStats }) {
         .filter((i) => (i.stock_out || 0) > 0)
         .sort((a, b) => (b.stock_out || 0) - (a.stock_out || 0));
 
-    // Barang sering habis (prioritas status HABIS & frekuensi pemakaian tinggi)
-    const frequentlyOutOfStockList = stats.frequentlyOutOfStockItems || [...stats.criticalItems]
-        .filter((i) => i.status === 'HABIS' || i.status === 'RENDAH')
-        .sort((a, b) => {
-            if (a.status === 'HABIS' && b.status !== 'HABIS') return -1;
-            if (b.status === 'HABIS' && a.status !== 'HABIS') return 1;
-            return (b.stock_out || 0) - (a.stock_out || 0);
-        });
-
     const getBaseList = () => {
         if (activeTab === 'HABIS') return outOfStockList;
         if (activeTab === 'RENDAH') return lowStockList;
-        if (activeTab === 'SERING_HABIS') return frequentlyOutOfStockList;
         if (activeTab === 'SERING_DIPAKAI') return mostUsedList;
         return stats.criticalItems;
     };
@@ -92,6 +82,10 @@ export function DashboardClient({ stats }: { stats: DashboardStats }) {
             (item.category_name || '').toLowerCase().includes(query)
         );
     });
+
+    // Top items for Chart visualization (Top 6)
+    const topUsedItems = mostUsedList.slice(0, 6);
+    const maxStockOut = topUsedItems.length > 0 ? Math.max(...topUsedItems.map((i) => i.stock_out || 0), 1) : 1;
 
     return (
         <div className="space-y-6">
@@ -121,7 +115,7 @@ export function DashboardClient({ stats }: { stats: DashboardStats }) {
                 </Alert>
             )}
 
-            {/* Statistics Cards Row 1: Ringkasan Utama */}
+            {/* Statistics Cards Row 1 */}
             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 {/* Total Asset Value */}
                 <Card className="shadow-sm">
@@ -208,91 +202,112 @@ export function DashboardClient({ stats }: { stats: DashboardStats }) {
                 </Card>
             </div>
 
-            {/* Statistics Cards Row 2: Fitur Baru (Sering Habis & Sering Dipakai) */}
-            <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
-                {/* Sering Habis Card - CLICKABLE */}
-                <Card
-                    onClick={() => openModalWithTab('SERING_HABIS')}
-                    className="shadow-sm cursor-pointer border-rose-200 bg-gradient-to-br from-white to-rose-50/40 hover:border-rose-500 hover:shadow-md transition-all group relative overflow-hidden"
-                >
-                    <div className="absolute top-0 left-0 w-2 h-full bg-rose-500" />
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-2 bg-rose-100 rounded-lg text-rose-600">
-                                <Flame className="h-5 w-5" />
+            {/* ======================================================== */}
+            {/* GRAFIK & CHART: BARANG YANG PALING SERING DIPAKAI */}
+            {/* ======================================================== */}
+            <Card className="shadow-sm border-blue-100 overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-blue-50/70 via-white to-transparent pb-4 border-b border-gray-100">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
+                            <div className="p-2 bg-[#009ce4]/10 rounded-lg text-[#009ce4]">
+                                <BarChart3 className="h-5 w-5" />
                             </div>
                             <div>
-                                <CardTitle className="text-base font-semibold text-gray-800 group-hover:text-rose-700 transition-colors">
-                                    Barang Sering Habis
+                                <CardTitle className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                    Grafik Barang Yang Sering Dipakai
+                                    <Badge variant="outline" className="text-xs bg-blue-50 text-[#009ce4] border-blue-200">
+                                        Top Penggunaan
+                                    </Badge>
                                 </CardTitle>
-                                <p className="text-xs text-gray-500">Prioritas pengadaan & restock rutin</p>
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                    Visualisasi volume stok barang yang paling sering keluar dalam operasional
+                                </p>
                             </div>
                         </div>
-                        <Badge variant="outline" className="border-rose-300 text-rose-700 bg-rose-50 font-bold">
-                            {frequentlyOutOfStockList.length} Item
-                        </Badge>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-sm text-gray-600">
-                            {frequentlyOutOfStockList.length > 0 ? (
-                                <p className="truncate">
-                                    Contoh: <strong className="text-gray-900">{frequentlyOutOfStockList[0].item_name}</strong>
-                                    {frequentlyOutOfStockList.length > 1 && ` dan ${frequentlyOutOfStockList.length - 1} barang lainnya`}
-                                </p>
-                            ) : (
-                                <p className="text-gray-400">Tidak ada barang yang sering habis.</p>
-                            )}
-                        </div>
-                        <div className="flex items-center justify-between mt-3 pt-2 border-t border-rose-100">
-                            <span className="text-xs text-gray-500">Klik untuk melihat analisis & daftar lengkap</span>
-                            <span className="text-xs text-rose-600 font-semibold group-hover:underline flex items-center gap-1">
-                                Lihat Detail <ChevronRight className="w-3.5 h-3.5" />
-                            </span>
-                        </div>
-                    </CardContent>
-                </Card>
 
-                {/* Sering Dipakai Card - CLICKABLE */}
-                <Card
-                    onClick={() => openModalWithTab('SERING_DIPAKAI')}
-                    className="shadow-sm cursor-pointer border-blue-200 bg-gradient-to-br from-white to-blue-50/40 hover:border-[#009ce4] hover:shadow-md transition-all group relative overflow-hidden"
-                >
-                    <div className="absolute top-0 left-0 w-2 h-full bg-[#009ce4]" />
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-2 bg-blue-100 rounded-lg text-[#009ce4]">
-                                <Zap className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <CardTitle className="text-base font-semibold text-gray-800 group-hover:text-[#009ce4] transition-colors">
-                                    Barang Sering Dipakai
-                                </CardTitle>
-                                <p className="text-xs text-gray-500">Paling aktif keluar dalam operasional</p>
-                            </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openModalWithTab('SERING_DIPAKAI')}
+                            className="text-xs font-semibold text-[#009ce4] border-[#009ce4]/30 hover:bg-[#009ce4] hover:text-white transition-all shadow-xs shrink-0 self-start sm:self-auto"
+                        >
+                            <span>Lihat Detail Semua Data ({mostUsedList.length})</span>
+                            <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
+                        </Button>
+                    </div>
+                </CardHeader>
+
+                <CardContent className="pt-6">
+                    {topUsedItems.length === 0 ? (
+                        <div className="text-center py-12 text-gray-500 text-sm">
+                            <Zap className="h-8 w-8 mx-auto text-gray-300 mb-2" />
+                            Belum ada riwayat transaksi barang keluar yang tercatat.
                         </div>
-                        <Badge variant="outline" className="border-blue-300 text-[#009ce4] bg-blue-50 font-bold">
-                            {mostUsedList.length} Item
-                        </Badge>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-sm text-gray-600">
-                            {mostUsedList.length > 0 ? (
-                                <p className="truncate">
-                                    Paling sering: <strong className="text-gray-900">{mostUsedList[0].item_name}</strong> ({mostUsedList[0].stock_out} {mostUsedList[0].unit} keluar)
-                                </p>
-                            ) : (
-                                <p className="text-gray-400">Belum ada data barang keluar tercatat.</p>
-                            )}
+                    ) : (
+                        <div className="space-y-4">
+                            {/* Visual Progress Bar Chart */}
+                            {topUsedItems.map((item, index) => {
+                                const percentage = Math.round(((item.stock_out || 0) / maxStockOut) * 100);
+                                
+                                return (
+                                    <div
+                                        key={item.item_id}
+                                        onClick={() => openModalWithTab('SERING_DIPAKAI')}
+                                        className="group p-3 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 cursor-pointer transition-all"
+                                    >
+                                        <div className="flex items-center justify-between text-sm mb-2">
+                                            <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                                <span className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold shrink-0 ${
+                                                    index === 0
+                                                        ? 'bg-amber-400 text-amber-950 shadow-xs'
+                                                        : index === 1
+                                                        ? 'bg-slate-300 text-slate-800'
+                                                        : index === 2
+                                                        ? 'bg-amber-700/20 text-amber-900'
+                                                        : 'bg-gray-100 text-gray-600'
+                                                }`}>
+                                                    #{index + 1}
+                                                </span>
+                                                <div className="min-w-0 truncate">
+                                                    <span className="font-semibold text-gray-900 group-hover:text-[#009ce4] transition-colors truncate block">
+                                                        {item.item_name}
+                                                    </span>
+                                                    <span className="text-xs text-gray-500">
+                                                        {item.item_code} • {item.category_name || '-'}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div className="text-right shrink-0">
+                                                <span className="text-sm font-bold text-gray-900">
+                                                    {item.stock_out} <span className="text-xs font-normal text-gray-500">{item.unit}</span>
+                                                </span>
+                                                <div className="text-[11px] text-gray-400">
+                                                    Sisa: {item.current_stock} {item.unit}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Chart Bar */}
+                                        <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden flex">
+                                            <div
+                                                className={`h-full rounded-full transition-all duration-500 ${
+                                                    index === 0
+                                                        ? 'bg-gradient-to-r from-blue-500 to-[#009ce4]'
+                                                        : index === 1
+                                                        ? 'bg-gradient-to-r from-sky-400 to-blue-500'
+                                                        : 'bg-gradient-to-r from-blue-400 to-sky-400'
+                                                }`}
+                                                style={{ width: `${Math.max(percentage, 5)}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
-                        <div className="flex items-center justify-between mt-3 pt-2 border-t border-blue-100">
-                            <span className="text-xs text-gray-500">Klik untuk melihat peringkat pemakaian</span>
-                            <span className="text-xs text-[#009ce4] font-semibold group-hover:underline flex items-center gap-1">
-                                Lihat Detail <ChevronRight className="w-3.5 h-3.5" />
-                            </span>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+                    )}
+                </CardContent>
+            </Card>
 
             {/* Two Column Layout: Barang Kritis & Transaksi Terbaru */}
             <div className="grid gap-6 lg:grid-cols-2">
@@ -406,12 +421,18 @@ export function DashboardClient({ stats }: { stats: DashboardStats }) {
             </div>
 
             {/* ======================================================== */}
-            {/* MODAL DETIL STOK HABIS, STOK RENDAH, SERING HABIS & SERING DIPAKAI */}
+            {/* MODAL DETIL LENGKAP: BARANG YANG SERING DIPAKAI & KRITIS */}
             {/* ======================================================== */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                 <DialogContent className="sm:max-w-[750px] max-h-[88vh] flex flex-col p-6">
                     <DialogHeader>
                         <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                            {activeTab === 'SERING_DIPAKAI' && (
+                                <>
+                                    <Zap className="h-5 w-5 text-[#009ce4]" />
+                                    <span>Detail Barang Paling Sering Dipakai ({mostUsedList.length})</span>
+                                </>
+                            )}
                             {activeTab === 'HABIS' && (
                                 <>
                                     <AlertTriangle className="h-5 w-5 text-red-600" />
@@ -424,18 +445,6 @@ export function DashboardClient({ stats }: { stats: DashboardStats }) {
                                     <span>Daftar Barang — Stok Rendah ({lowStockList.length})</span>
                                 </>
                             )}
-                            {activeTab === 'SERING_HABIS' && (
-                                <>
-                                    <Flame className="h-5 w-5 text-rose-600" />
-                                    <span>Daftar Barang Sering Habis ({frequentlyOutOfStockList.length})</span>
-                                </>
-                            )}
-                            {activeTab === 'SERING_DIPAKAI' && (
-                                <>
-                                    <Zap className="h-5 w-5 text-[#009ce4]" />
-                                    <span>Daftar Barang Paling Sering Dipakai ({mostUsedList.length})</span>
-                                </>
-                            )}
                             {activeTab === 'ALL' && (
                                 <>
                                     <AlertCircle className="h-5 w-5 text-orange-600" />
@@ -445,41 +454,28 @@ export function DashboardClient({ stats }: { stats: DashboardStats }) {
                         </DialogTitle>
                         <DialogDescription className="text-xs text-gray-500">
                             {activeTab === 'SERING_DIPAKAI' 
-                                ? 'Peringkat barang dengan volume penggunaan (stok keluar) terbanyak dalam operasional.'
-                                : activeTab === 'SERING_HABIS'
-                                ? 'Daftar barang kritis yang memiliki frekuensi pemakaian tinggi dan perlu diprioritaskan saat pengadaan.'
+                                ? 'Peringkat dan statistik menyeluruh dari barang yang paling banyak digunakan (stok keluar).'
                                 : 'Rincian sparepart yang memerlukan perhatian dan pengadaan stok.'}
                         </DialogDescription>
                     </DialogHeader>
 
                     {/* Filter Tabs */}
-                    <div className="flex items-center gap-1.5 border-b pb-3 pt-1 overflow-x-auto no-scrollbar">
+                    <div className="flex items-center gap-2 border-b pb-3 pt-1 overflow-x-auto no-scrollbar">
                         <button
                             type="button"
                             onClick={() => setActiveTab('SERING_DIPAKAI')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                                 activeTab === 'SERING_DIPAKAI'
                                     ? 'bg-[#009ce4] text-white shadow-sm'
                                     : 'bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-[#009ce4]'
                             }`}
                         >
-                            ⚡ Sering Dipakai ({mostUsedList.length})
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setActiveTab('SERING_HABIS')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                                activeTab === 'SERING_HABIS'
-                                    ? 'bg-rose-600 text-white shadow-sm'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-rose-50 hover:text-rose-700'
-                            }`}
-                        >
-                            🔥 Sering Habis ({frequentlyOutOfStockList.length})
+                            ⚡ Peringkat Sering Dipakai ({mostUsedList.length})
                         </button>
                         <button
                             type="button"
                             onClick={() => setActiveTab('HABIS')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                                 activeTab === 'HABIS'
                                     ? 'bg-red-600 text-white shadow-sm'
                                     : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-700'
@@ -490,7 +486,7 @@ export function DashboardClient({ stats }: { stats: DashboardStats }) {
                         <button
                             type="button"
                             onClick={() => setActiveTab('RENDAH')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                                 activeTab === 'RENDAH'
                                     ? 'bg-yellow-500 text-white shadow-sm'
                                     : 'bg-gray-100 text-gray-700 hover:bg-yellow-50 hover:text-yellow-700'
@@ -501,13 +497,13 @@ export function DashboardClient({ stats }: { stats: DashboardStats }) {
                         <button
                             type="button"
                             onClick={() => setActiveTab('ALL')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                                 activeTab === 'ALL'
                                     ? 'bg-gray-900 text-white shadow-sm'
                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                         >
-                            📦 Semua ({stats.criticalCount})
+                            📦 Semua Kritis ({stats.criticalCount})
                         </button>
                     </div>
 
@@ -526,7 +522,7 @@ export function DashboardClient({ stats }: { stats: DashboardStats }) {
                     <div className="flex-1 overflow-y-auto min-h-[250px] max-h-[420px] pr-1 space-y-2.5">
                         {filteredItems.length === 0 ? (
                             <div className="text-center py-12 text-gray-500 text-sm">
-                                {searchQuery ? 'Tidak ada barang yang cocok dengan pencarian.' : 'Tidak ada barang pada kategori ini.'}
+                                {searchQuery ? 'Tidak ada barang yang cocok dengan pencarian.' : 'Tidak ada data pada kategori ini.'}
                             </div>
                         ) : (
                             filteredItems.map((item, index) => (
@@ -538,7 +534,7 @@ export function DashboardClient({ stats }: { stats: DashboardStats }) {
                                         <div className="flex items-center gap-2 mb-0.5">
                                             {activeTab === 'SERING_DIPAKAI' && (
                                                 <span className="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
-                                                    #{index + 1} Terpopuler
+                                                    #{index + 1}
                                                 </span>
                                             )}
                                             <span className="text-xs font-mono font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
@@ -554,7 +550,7 @@ export function DashboardClient({ stats }: { stats: DashboardStats }) {
                                         <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
                                             <span>Harga: {formatCurrency(item.buying_price)}</span>
                                             <span>•</span>
-                                            <span className="text-rose-600 font-medium">Total Keluar: <strong>{item.stock_out} {item.unit}</strong></span>
+                                            <span className="text-[#009ce4] font-medium">Total Terpakai: <strong>{item.stock_out} {item.unit}</strong></span>
                                         </div>
                                     </div>
 
@@ -574,7 +570,7 @@ export function DashboardClient({ stats }: { stats: DashboardStats }) {
                                                 : item.current_stock + ' ' + item.unit + ' (' + item.status + ')'}
                                         </Badge>
                                         <p className="text-xs text-gray-500 mt-1">
-                                            Min: <strong className="text-gray-700">{item.min_stock} {item.unit}</strong>
+                                            Min. Stok: <strong className="text-gray-700">{item.min_stock} {item.unit}</strong>
                                         </p>
                                     </div>
                                 </div>

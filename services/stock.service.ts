@@ -189,19 +189,10 @@ export const getDashboardStats = unstable_cache(
             const outOfStockItems = stockInfo.filter((item) => item.status === 'HABIS');
             const lowStockItems = stockInfo.filter((item) => item.status === 'RENDAH');
 
-            // Barang yang sering dipakai (berdasarkan jumlah stok keluar & frekuensi penggunaan)
+            // Barang yang paling sering dipakai (berdasarkan jumlah stok keluar)
             const mostUsedItems = [...stockInfo]
                 .filter((item) => item.stock_out > 0)
                 .sort((a, b) => b.stock_out - a.stock_out);
-
-            // Barang yang sering habis / rentan habis (prioritas status HABIS dan frekuensi pemakaian tinggi)
-            const frequentlyOutOfStockItems = [...stockInfo]
-                .filter((item) => item.status === 'HABIS' || item.status === 'RENDAH')
-                .sort((a, b) => {
-                    if (a.status === 'HABIS' && b.status !== 'HABIS') return -1;
-                    if (b.status === 'HABIS' && a.status !== 'HABIS') return 1;
-                    return b.stock_out - a.stock_out;
-                });
 
             // Get recent transactions (only select needed columns)
             const { data: recentTransactions } = await supabase
@@ -229,7 +220,6 @@ export const getDashboardStats = unstable_cache(
                 outOfStockItems,
                 lowStockItems,
                 mostUsedItems,
-                frequentlyOutOfStockItems,
                 recentTransactions: recentTransactions || [],
             };
         } catch (error) {
